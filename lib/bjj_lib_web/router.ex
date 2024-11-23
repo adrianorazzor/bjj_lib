@@ -17,7 +17,18 @@ defmodule BjjLibWeb.Router do
   scope "/", BjjLibWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # Main page using LiveView
+    live "/", VideosLive.Index, :index
+
+    # Video-related routes
+    live "/videos/new", VideosLive.Index, :new
+    live "/videos/:id/edit", VideosLive.Index, :edit
+    live "/videos/:id", VideosLive.Index, :show
+
+    # Tag-related routes
+    live "/tags", TagsLive.Index, :index
+    live "/tags/new", TagsLive.Index, :new
+    live "/tags/:id/edit", TagsLive.Index, :edit
   end
 
   # Other scopes may use custom stacks.

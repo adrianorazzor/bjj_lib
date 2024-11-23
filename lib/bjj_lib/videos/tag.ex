@@ -3,7 +3,6 @@ defmodule BjjLib.Videos.Tag do
   import Ecto.Changeset
 
   schema "tags" do
-
     field :name, :string
     field :description, :string
 
@@ -21,6 +20,5 @@ defmodule BjjLib.Videos.Tag do
       |> unique_constraint(:name)
       |> update_change(:name, &String.downcase/1)
     end
-
   end
 end

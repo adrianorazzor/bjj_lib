@@ -41,12 +41,10 @@ defmodule BjjLib.Videos do
     |> Repo.all()
   end
 
-
   def get_tag!(id) do
     Tag
     |> Repo.get!(id)
   end
-
 
   def create_tag(attrs) do
     %Tag{}
@@ -68,9 +66,10 @@ defmodule BjjLib.Videos do
 
     from(v in Video,
       join: t in assoc(v, :tags),
-      where: ilike(v.title, ^wildcard_query) or
-             ilike(v.description, ^wildcard_query) or
-             ilike(t.name, ^wildcard_query),
+      where:
+        ilike(v.title, ^wildcard_query) or
+          ilike(v.description, ^wildcard_query) or
+          ilike(t.name, ^wildcard_query),
       preload: [:tags],
       distinct: true
     )

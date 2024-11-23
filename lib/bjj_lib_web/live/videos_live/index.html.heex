@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <h1 class="text-2xl font-bold text-gray-900">BJJ Library</h1>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <.link
+            patch={~p"/videos/new"}
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          >
+            Add Video
+          </.link>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search Bar -->
+    <div class="mb-8">
+      <form phx-submit="search" class="flex gap-4">
+        <input
+          type="text"
+          name="query"
+          value={@search_query}
+          placeholder="Search videos..."
+          class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          phx-debounce="300"
+        />
+        <button
+          type="submit"
+          class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+        >
+          Search
+        </button>
+      </form>
+    </div>
+
+    <div class="flex gap-8">
+      <!-- Tag Sidebar -->
+      <div class="w-64 flex-shrink-0">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Filter by Tags</h3>
+          <div class="space-y-2">
+            <%= for tag <- @tags do %>
+              <button
+                phx-click="filter_tag"
+                phx-value-tag={tag.name}
+                class={[
+                  "w-full text-left px-3 py-2 rounded-md text-sm",
+                  if(tag.name in @selected_tags,
+                    do: "bg-blue-100 text-blue-800",
+                    else: "hover:bg-gray-100"
+                  )
+                ]}
+              >
+                <%= tag.name %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <!-- Video Grid -->
+      <div class="flex-1">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <%= for video <- @videos do %>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+              <div class="aspect-w-16 aspect-h-9">
+                <iframe
+                  src={"https://www.youtube.com/embed/#{extract_youtube_id(video.youtube_url)}"}
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  class="w-full h-full"
+                >
+                </iframe>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                  <%= video.title %>
+                </h3>
+                <p class="text-sm text-gray-500 mb-4 line-clamp-2">
+                  <%= video.description %>
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <%= for tag <- video.tags do %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <%= tag.name %>
+                    </span>
+                  <% end %>
+                </div>
+                <div class="mt-4 flex justify-end">
+                  <.link navigate={~p"/videos/#{video}"} class="text-blue-600 hover:text-blue-800">
+                    View Details →
+                  </.link>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

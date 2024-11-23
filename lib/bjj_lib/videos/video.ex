@@ -62,7 +62,7 @@ defmodule BjjLib.Videos.Video do
           |> Enum.reject(&(&1 == ""))
           |> Enum.map(&%{name: &1})
 
-          # associate tags with video
+        # associate tags with video
         put_assoc(changeset, :tags, tags)
     end
   end
