@@ -94,7 +94,7 @@ defmodule BjjLibWeb.VideosLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Video created successfully")
-         |> push_patch(to: socket.assign.patch)}
+         |> push_navigate(to: ~p"/")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
