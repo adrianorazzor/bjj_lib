@@ -20,6 +20,17 @@
     </div>
   </nav>
 
+  <.modal :if={@live_action in [:new, :edit]} id="video-modal" show on_cancel={JS.patch(~p"/")}>
+    <.live_component
+      module={BjjLibWeb.VideosLive.FormComponent}
+      id={@video.id || :new}
+      title={@page_title}
+      action={@live_action}
+      video={@video}
+      patch={~p"/"}
+    />
+  </.modal>
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Search Bar -->
     <div class="mb-8">
@@ -47,23 +58,53 @@
         <div class="bg-white p-4 rounded-lg shadow">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Filter by Tags</h3>
           <div class="space-y-2">
-            <%= for tag <- @tags do %>
-              <button
-                phx-click="filter_tag"
-                phx-value-tag={tag.name}
-                class={[
-                  "w-full text-left px-3 py-2 rounded-md text-sm",
-                  if(tag.name in @selected_tags,
-                    do: "bg-blue-100 text-blue-800",
-                    else: "hover:bg-gray-100"
-                  )
-                ]}
-              >
-                <%= tag.name %>
-              </button>
+            <%= if Enum.empty?(@tags) do %>
+              <p class="text-sm text-gray-500">No tags available</p>
+            <% else %>
+              <%= for tag <- @tags do %>
+                <button
+                  phx-click="filter_tag"
+                  phx-value-tag={tag.name}
+                  class={[
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                    if(tag.name in @selected_tags,
+                      do: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+                      else: "hover:bg-gray-100"
+                    )
+                  ]}
+                >
+                  <div class="flex items-center justify-between">
+                    <span>
+                      <%= tag.name %>
+                    </span>
+                    <%= if tag.name in @selected_tags do %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    <% end %>
+                  </div>
+                </button>
+              <% end %>
             <% end %>
           </div>
         </div>
+
+        <%= if length(@selected_tags)> 0 do %>
+          <div class="mt-4">
+            <button phx-click="clear_filters" class="text-sm text-red-600 hover:text-red-800">
+              Clear filters
+            </button>
+          </div>
+        <% end %>
       </div>
       <!-- Video Grid -->
       <div class="flex-1">

@@ -2,14 +2,20 @@ defmodule BjjLib.Videos.Video do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias BjjLib.Repo
+  alias BjjLib.Videos.{Tag, VideoTag}
+
   schema "videos" do
     field :title, :string
     field :description, :string
     field :youtube_url, :string
     field :tag_list, :string, virtual: true
 
-    has_many :video_tags, BjjLib.Videos.VideoTag
-    has_many :tags, through: [:video_tags, :tag]
+    many_to_many :tags, Tag,
+      join_through: VideoTag,
+      on_replace: :delete,
+      join_defaults: [inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+                     updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)]
 
     timestamps()
   end
@@ -18,10 +24,23 @@ defmodule BjjLib.Videos.Video do
     video
     |> cast(attrs, [:title, :description, :youtube_url, :tag_list])
     |> validate_required([:title, :description, :youtube_url])
-    |> validate_length(:title, min: 5, max: 100)
-    |> validate_length(:description, min: 10, max: 1000)
     |> validate_youtube_url(:youtube_url)
-    |> handle_tags(attrs)
+    |> maybe_put_tags(attrs)
+  end
+
+  defp maybe_put_tags(changeset, _attrs) do
+    if tag_list = get_change(changeset, :tag_list) do
+      tags =
+        tag_list
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.map(&find_or_create_tag/1)
+
+      put_assoc(changeset, :tags, tags)
+    else
+      changeset
+    end
   end
 
   defp validate_youtube_url(changeset, field) do
@@ -49,21 +68,20 @@ defmodule BjjLib.Videos.Video do
 
   defp extract_youtube_id(_), do: :error
 
-  defp handle_tags(changeset, _attrs) do
-    case get_change(changeset, :tag_list) do
+  defp find_or_create_tag(name) do
+    name = String.downcase(name)
+
+    case Repo.get_by(Tag, name: name) do
       nil ->
-        changeset
+        {:ok, tag} =
+          %Tag{}
+          |> Tag.changeset(%{name: name})
+          |> Repo.insert()
 
-      tag_list ->
-        tags =
-          tag_list
-          |> String.split(",")
-          |> Enum.map(&String.trim/1)
-          |> Enum.reject(&(&1 == ""))
-          |> Enum.map(&%{name: &1})
+        tag
 
-        # associate tags with video
-        put_assoc(changeset, :tags, tags)
+      tag ->
+        tag
     end
   end
 end

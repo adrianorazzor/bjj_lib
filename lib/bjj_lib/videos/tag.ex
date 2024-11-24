@@ -4,21 +4,21 @@ defmodule BjjLib.Videos.Tag do
 
   schema "tags" do
     field :name, :string
-    field :description, :string
 
-    has_many :video_tags, BjjLib.Videos.VideoTag
-    has_many :videos, through: [:video_tags, :video]
+    many_to_many :videos, BjjLib.Videos.Video,
+      join_through: BjjLib.Videos.VideoTag,
+      on_replace: :delete
 
     timestamps()
+  end
 
-    def changeset(tag, attrs) do
-      tag
-      |> cast(attrs, [:name, :description])
-      |> validate_required([:name, :description])
-      |> validate_length(:name, min: 5, max: 100)
-      |> validate_length(:description, min: 10, max: 1000)
-      |> unique_constraint(:name)
-      |> update_change(:name, &String.downcase/1)
-    end
+  def changeset(tag, attrs) do
+    tag
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
+    # Adjusted validation
+    |> validate_length(:name, min: 2, max: 30)
+    |> unique_constraint(:name)
+    |> update_change(:name, &String.downcase/1)
   end
 end

@@ -8,8 +8,9 @@ defmodule BjjLibWeb.VideosLive.Index do
     {:ok,
      socket
      |> assign(:videos, Videos.list_videos())
+     # Add this line to load tags
      |> assign(:tags, Videos.list_tags())
-     |> assign(:selected_tag, nil)
+     |> assign(:selected_tags, [])
      |> assign(:search_query, "")}
   end
 
@@ -42,25 +43,52 @@ defmodule BjjLibWeb.VideosLive.Index do
     {:noreply, assign(socket, videos: video, search_query: query)}
   end
 
+  @impl true
   def handle_event("filter_tag", %{"tag" => tag}, socket) do
     selected_tags = toggle_tag(socket.assigns.selected_tags, tag)
-    filtered_videos = filter_videos_by_tag(Videos.list_videos(), selected_tags)
-    {:noreply, assign(socket, videos: filtered_videos, selected_tags: selected_tags)}
+    filtered_videos = filter_videos_by_tags(Videos.list_videos(), selected_tags)
+
+    {:noreply,
+     socket
+     |> assign(:selected_tags, selected_tags)
+     |> assign(:videos, filtered_videos)}
+  end
+
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    video = Videos.get_video!(id)
+    {:ok, _} = Videos.delete_video(video)
+
+    {:noreply, stream_delete(socket, :videos, video)}
+  end
+
+  @impl true
+  def handle_event("clear_filters", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:selected_tags, [])
+     |> assign(:videos, Videos.list_videos())}
   end
 
   defp toggle_tag(selected_tags, tag) do
-    if Enum.member?(selected_tags, tag) do
-      Enum.reject(selected_tags, &(&1 == tag))
+    if tag in selected_tags do
+      List.delete(selected_tags, tag)
     else
-      selected_tags ++ [tag]
+      [tag | selected_tags]
     end
   end
 
-  defp filter_videos_by_tag(videos, []), do: videos
+  defp filter_videos_by_tags(videos, []), do: videos
 
-  defp filter_videos_by_tag(videos, tags) do
+  defp filter_videos_by_tags(videos, selected_tags) do
     Enum.filter(videos, fn video ->
-      Enum.any?(video.tags, &Enum.member?(tags, &1))
+      video_tags = Enum.map(video.tags, & &1.name)
+      Enum.all?(selected_tags, &(&1 in video_tags))
     end)
+  end
+
+  @impl true
+  def handle_info({BjjLibWeb.VideosLive.FormComponent, {:saved, video}}, socket) do
+    {:noreply, stream_insert(socket, :videos, video)}
   end
 end

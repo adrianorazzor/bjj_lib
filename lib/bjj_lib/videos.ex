@@ -1,6 +1,7 @@
 defmodule BjjLib.Videos do
   import Ecto.Query
   alias BjjLib.Repo
+  alias Ecto.Multi
   alias BjjLib.Videos.{Video, Tag}
 
   def list_videos do
@@ -16,9 +17,17 @@ defmodule BjjLib.Videos do
   end
 
   def create_video(attrs \\ %{}) do
-    %Video{}
-    |> Video.changeset(attrs)
-    |> Repo.insert()
+    Multi.new()
+    |> Multi.insert(:video, Video.changeset(%Video{}, attrs))
+    |> Multi.run(:video_with_tags, fn repo, %{video: video} ->
+      video = repo.preload(video, :tags)
+      {:ok, video}
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{video_with_tags: video}} -> {:ok, video}
+      {:error, _operation, changeset, _changes} -> {:error, changeset}
+    end
   end
 
   def update_video(%Video{} = video, attrs) do
@@ -31,14 +40,12 @@ defmodule BjjLib.Videos do
     Repo.delete(video)
   end
 
-  def change_video(%Video{} = video, attrs) do
-    video
-    |> Video.changeset(attrs)
+  def change_video(%Video{} = video, attrs \\ %{}) do
+    Video.changeset(video, attrs)
   end
 
   def list_tags do
-    Tag
-    |> Repo.all()
+    Repo.all(Tag)
   end
 
   def get_tag!(id) do
@@ -74,5 +81,19 @@ defmodule BjjLib.Videos do
       distinct: true
     )
     |> Repo.all()
+  end
+
+  def handle_tags(changeset, attrs) do
+    if tag_list = attrs["tag_list"] || attrs[:tag_list] do
+      tags =
+        tag_list
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.map(&find_or_create_tag/1)
+        |> Enum.map(fn {:ok, tag} -> tag end)
+
+      Ecto.Changeset.put_assoc(changeset, :tags, tags)
+    end
   end
 end
