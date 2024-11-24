@@ -1,15 +1,19 @@
-<div class="min-h-screen bg-gray-100">
-  <!-- Navigation -->
-  <nav class="bg-white shadow-lg">
+<div class="min-h-screen bg-gray-50">
+  <nav class="bg-white border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
-        <div class="flex">
-          <div class="flex-shrink-0 flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900">BJJ Library</h1>
-          </div>
-        </div>
         <div class="flex items-center">
-          <.link patch={~p"/videos/new"} class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            BJJ Library
+          </h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <.link patch={~p"/videos/new"}
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
             Add Video
           </.link>
         </div>
@@ -17,102 +21,48 @@
     </div>
   </nav>
 
-  <.modal :if={@live_action in [:new, :edit]} id="video-modal" show on_cancel={JS.patch(~p"/")}>
-    <.live_component module={BjjLibWeb.VideosLive.FormComponent} id={@video.id || :new} title={@page_title}
-      action={@live_action} video={@video} patch={~p"/"} />
-  </.modal>
-
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Search Bar -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-      <form phx-submit="search" class="flex gap-4">
-        <input type="text" name="query" value={@search_query} placeholder="Search videos..."
-          class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          phx-debounce="300" />
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-          Search
-        </button>
-      </form>
+      <.search_bar query={@search_query} />
     </div>
 
     <div class="flex gap-8">
-      <!-- Tag Sidebar -->
-      <div class="w-64 flex-shrink-0">
-        <div class="bg-white p-4 rounded-lg shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Filter by Tags</h3>
-          <div class="space-y-2">
-            <%= if Enum.empty?(@tags) do %>
-              <p class="text-sm text-gray-500">No tags available</p>
-              <% else %>
-                <%= for tag <- @tags do %>
-                  <button phx-click="filter_tag" phx-value-tag={tag.name}
-                    class={[ "w-full text-left px-3 py-2 rounded-md text-sm transition-colors" , if(tag.name in
-                    @selected_tags, do: "bg-blue-100 text-blue-800 hover:bg-blue-200" , else: "hover:bg-gray-100" ) ]}>
-                    <div class="flex items-center justify-between">
-                      <span>
-                        <%= tag.name %>
-                      </span>
-                      <%= if tag.name in @selected_tags do %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clip-rule="evenodd" />
-                        </svg>
-                        <% end %>
-                    </div>
-                  </button>
-                  <% end %>
-                    <% end %>
-          </div>
-        </div>
+      <.tag_sidebar tags={@tags} selected_tags={@selected_tags} />
 
-        <%= if length(@selected_tags)> 0 do %>
-          <div class="mt-4">
-            <button phx-click="clear_filters" class="text-sm text-red-600 hover:text-red-800">
-              Clear filters
-            </button>
-          </div>
-          <% end %>
-      </div>
-      <!-- Video Grid -->
-      <!-- Video Grid -->
       <div class="flex-1">
         <%= if Enum.empty?(@videos) do %>
-          <div class="text-center py-12">
-            <h3 class="text-lg font-medium text-gray-900">No videos yet</h3>
-            <p class="mt-2 text-sm text-gray-500">Get started by adding your first video.</p>
+          <div class="text-center py-12 bg-white rounded-xl shadow-sm">
+            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">No videos yet</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding your first video.</p>
+            <div class="mt-6">
+              <.link patch={~p"/videos/new"}
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add your first video
+              </.link>
+            </div>
           </div>
           <% else %>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <%= for video <- @videos do %>
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                  <div class="aspect-w-16 aspect-h-9">
-                    <iframe src={"https://www.youtube.com/embed/#{extract_youtube_id(video.youtube_url)}"}
-                      frameborder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowfullscreen class="w-full h-full"></iframe>
-                  </div>
-                  <div class="p-4">
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">
-                      <%= video.title %>
-                    </h3>
-                    <p class="text-sm text-gray-500 mb-4 line-clamp-2">
-                      <%= video.description %>
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <%= for tag <- video.tags do %>
-                        <span
-                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <%= tag.name %>
-                        </span>
-                        <% end %>
-                    </div>
-                  </div>
-                </div>
+                <.video_card video={video} />
                 <% end %>
             </div>
             <% end %>
       </div>
     </div>
-  </div>
+  </main>
+
+  <.modal :if={@live_action in [:new, :edit]} id="video-modal" show on_cancel={JS.patch(~p"/")}>
+    <.live_component module={BjjLibWeb.VideosLive.FormComponent} id={@video.id || :new} title={@page_title}
+      action={@live_action} video={@video} patch={~p"/"} />
+  </.modal>
 </div>

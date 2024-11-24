@@ -87,6 +87,7 @@ defmodule BjjLibWeb do
       import BjjLibWeb.CoreComponents
       import BjjLibWeb.Gettext
       import BjjLibWeb.Helpers.VideoHelpers
+      import BjjLibWeb.VideoComponents
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
