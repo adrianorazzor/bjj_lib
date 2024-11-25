@@ -14,8 +14,10 @@ defmodule BjjLib.Videos.Video do
     many_to_many :tags, Tag,
       join_through: VideoTag,
       on_replace: :delete,
-      join_defaults: [inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
-                     updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)]
+      join_defaults: [
+        inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      ]
 
     timestamps()
   end

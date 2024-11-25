@@ -10,13 +10,13 @@ defmodule BjjLib.Videos.VideoTag do
   end
 
   def changeset(video_tag, attrs) do
-     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
 
-     video_tag
-     |> cast(attrs, [:video_id, :tag_id])
-     |> validate_required([:video_id, :tag_id])
-     |> unique_constraint([:video_id, :tag_id])
-     |> put_change(:inserted_at, now)
-     |> put_change(:updated_at, now)
+    video_tag
+    |> cast(attrs, [:video_id, :tag_id])
+    |> validate_required([:video_id, :tag_id])
+    |> unique_constraint([:video_id, :tag_id])
+    |> put_change(:inserted_at, now)
+    |> put_change(:updated_at, now)
   end
 end

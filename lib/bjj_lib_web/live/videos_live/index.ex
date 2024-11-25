@@ -12,8 +12,7 @@ defmodule BjjLibWeb.VideosLive.Index do
      |> assign(:videos, videos)  # Add this line to assign videos
      |> assign(:tags, Videos.list_tags())
      |> assign(:selected_tags, [])
-     |> assign(:search_query, "")
-     |> assign(:page_title, "BJJ Video Library")}
+     |> assign(:search_query, "")}
   end
 
   @impl true
@@ -91,8 +90,6 @@ defmodule BjjLibWeb.VideosLive.Index do
 
   @impl true
   def handle_info({BjjLibWeb.VideosLive.FormComponent, {:saved, video}}, socket) do
-    # Update the videos list when a new video is saved
-    updated_videos = [video | socket.assigns.videos]
-    {:noreply, assign(socket, :videos, updated_videos)}
+    {:noreply, stream_insert(socket, :videos, video)}
   end
 end
